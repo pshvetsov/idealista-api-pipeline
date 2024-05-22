@@ -1,0 +1,6 @@
+api_access.txt
+/airflow/dags/__pycache__
+/airflow/dags/src/__pycache__
+/airflow/logs/
+/airflow/tmp/
+/minio/
