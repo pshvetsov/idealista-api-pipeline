@@ -1,2 +1,0 @@
-API_KEY="p5cqj0bc9ejlravhe7dxem245n4gwoj2"
-API_SECRET="wuDdjizt8vs9"
