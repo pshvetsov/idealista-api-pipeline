@@ -11,8 +11,8 @@ from pyspark.sql.types import StructType, StructField, StringType, DoubleType, B
 logging.basicConfig(level=logging.INFO, filename='idealista_api.log', filemode='w', 
                     format='%(levelname)s:%(name)s:%(asctime)s:%(message)s', 
                     datefmt='%Y-%m-%d %H:%M:%S')
-logging.getLogger('').addHandler(logging.StreamHandler(sys.stdout))
-logger = logging.getLogger(__name__)
+logging.getLogger('py4j').addHandler(logging.StreamHandler(sys.stdout))
+logger = logging.getLogger('py4j')
 
 def create_spark_session():
     # Create Spark entry point
@@ -160,22 +160,27 @@ if __name__ == '__main__':
     df = process_kafka_df(kafka_df)
     
     # Simple Transformation
+    logger.info("*** START OUTPUT ***")
     query_console = df \
         .writeStream \
         .outputMode("append") \
         .format("console") \
-        .start()
+        .start() \
+        .awaitTermination()
+    logger.info("*** END OUTPUT ***")
+    
+    pass
         
-    # Call the function to test connection
-    test_cassandra_connection(spark)
+    # # Call the function to test connection
+    # test_cassandra_connection(spark)
 
-    logger.info("Printing df schema:")
-    df.printSchema()
+    # logger.info("Printing df schema:")
+    # df.printSchema()
     
-    df.writeStream \
-        .foreachBatch(write_to_cassandra) \
-        .outputMode("append") \
-        .start()
+    # df.writeStream \
+    #     .foreachBatch(write_to_cassandra) \
+    #     .outputMode("append") \
+    #     .start()
     
-    logger.info("Successfully written to cassandra.")
-    
+    # logger.info("Successfully written to cassandra.")
+

@@ -66,7 +66,6 @@ with DAG(
 
 
 if __name__ == "__main__":
-    pull_and_save_from_api()
     send_to_kafka_topic()
 
 

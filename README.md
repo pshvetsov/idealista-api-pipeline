@@ -36,3 +36,4 @@ docker-compose up --build
  - Use OOP (spark). Restructure code to use classes instead of functions.
  - Save filenames of processed data only after the data was sent.
  - Use better way to store data, other than local_file_system-to-minio setup.
+ - Tests

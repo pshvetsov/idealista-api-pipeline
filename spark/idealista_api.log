@@ -1,0 +1,9 @@
+INFO:py4j:2024-05-25 14:42:10:**** START SPARK JOB ****
+INFO:py4j:2024-05-25 14:42:10:Creating spark session...
+INFO:py4j:2024-05-25 14:42:13:Spark connection created successfully.
+INFO:py4j:2024-05-25 14:42:13:Start initializing kafka connection ...
+INFO:py4j:2024-05-25 14:42:14:Kafka connection created successfully.
+INFO:py4j:2024-05-25 14:42:14:Start processing kafka dataframe...
+INFO:py4j:2024-05-25 14:42:14:Kafka dataframe processed successfully.
+INFO:py4j:2024-05-25 14:42:14:*** START OUTPUT ***
+INFO:py4j:2024-05-25 14:42:14:*** END OUTPUT ***
