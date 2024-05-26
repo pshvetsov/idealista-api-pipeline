@@ -159,28 +159,17 @@ if __name__ == '__main__':
     kafka_df = create_kafka_df(spark)
     df = process_kafka_df(kafka_df)
     
-    # Simple Transformation
-    logger.info("*** START OUTPUT ***")
-    query_console = df \
-        .writeStream \
+    # Call the function to test connection
+    test_cassandra_connection(spark)
+
+    logger.info("Printing df schema:")
+    df.printSchema()
+    
+    df.writeStream \
+        .foreachBatch(write_to_cassandra) \
         .outputMode("append") \
-        .format("console") \
         .start() \
         .awaitTermination()
-    logger.info("*** END OUTPUT ***")
     
-    pass
-        
-    # # Call the function to test connection
-    # test_cassandra_connection(spark)
-
-    # logger.info("Printing df schema:")
-    # df.printSchema()
-    
-    # df.writeStream \
-    #     .foreachBatch(write_to_cassandra) \
-    #     .outputMode("append") \
-    #     .start()
-    
-    # logger.info("Successfully written to cassandra.")
+    logger.info("Successfully written to cassandra.")
 

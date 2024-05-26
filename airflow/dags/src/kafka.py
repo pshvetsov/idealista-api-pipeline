@@ -2,35 +2,66 @@ import os
 import time
 import logging
 import json
+from airflow.models import Connection
+from airflow.settings import Session
 from confluent_kafka import Producer
 from confluent_kafka.admin import AdminClient, NewTopic
 from src import MinioConnection
 
 logger = logging.getLogger(__name__)
 
+
+def create_or_update_kafka_connection():
+    session = Session()
+    conn_id = 'kafka_default'
+    conn_type = 'Apache Kafka'
+    extra = '{"bootstrap.servers": "kafka:9092", "group.id": "default-group"}'
+    
+    # Check if connection already exists
+    conn = session.query(Connection).filter(Connection.conn_id == conn_id).first()
+    
+    if conn:
+        logging.info("Airflow-Kafka connection already exists. Deleting...")
+        session.delete(conn)
+        session.commit()
+        
+    logging.info("Creating new Airflow-Kafka connection")
+    conn = Connection(
+        conn_id=conn_id,
+        conn_type=conn_type,
+        extra=extra
+    )
+    session.add(conn)
+    
+    session.commit()
+    session.close()
+    logging.info("Airflow-Kafka connection setup complete.")
+
+
 def create_kafka_topic():
-    topic_name = os.environ.get('KAFKA_TOPIC', 'real_estate_topic')
+    TOPIC_NAME = os.environ.get('KAFKA_TOPIC', 'real_estate_topic')
     admin_client = AdminClient({"bootstrap.servers": "kafka:9092"})
 
     current_topics = admin_client.list_topics(timeout=10).topics
-    if topic_name in current_topics:
-        logger.info(f"Kafka topic {topic_name} already exists.")
+    if TOPIC_NAME in current_topics:
+        logger.info(f"Kafka topic {TOPIC_NAME} already exists.")
     else:
-        topic = NewTopic(topic_name, num_partitions=1, replication_factor=1)
+        topic = NewTopic(TOPIC_NAME, num_partitions=1, replication_factor=1)
         
         # Create the topic
         try:
             admin_client.create_topics([topic])
-            logger.info(f"Kafka topic '{topic_name}' created successfully.")
+            logger.info(f"Kafka topic '{TOPIC_NAME}' created successfully.")
         except Exception as e:
-            logger.error(f"Failed to create kafka topic '{topic_name}': {e}")
+            logger.error(f"Failed to create kafka topic '{TOPIC_NAME}': {e}")
         
 
 def send_to_kafka_topic():
+    create_kafka_topic()
     config = {
         'bootstrap.servers': 'kafka:9092',
     }
-    topic_name = os.environ.get('KAFKA_TOPIC')
+    TOPIC_NAME = os.environ.get('KAFKA_TOPIC')
     try:
         producer = Producer(**config)
         minio = MinioConnection()
@@ -40,7 +71,7 @@ def send_to_kafka_topic():
                 for element in data['elementList']:
                     # Convert to JSON and send to topic
                     json_data = json.dumps(element).encode('utf-8')
-                    producer.produce(topic_name, json_data)
+                    producer.produce(TOPIC_NAME, json_data)
                     producer.flush()
                     
                     # Make short pause to simulate stream behavior.

@@ -382,6 +382,7 @@ services:
     container_name: kowl_container
     depends_on:
       - kafka
+      - airflow-init
     ports:
       - 8082:8080
     environment:
