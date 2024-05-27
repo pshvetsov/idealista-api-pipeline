@@ -15,6 +15,11 @@ logging.getLogger('py4j').addHandler(logging.StreamHandler(sys.stdout))
 logger = logging.getLogger('py4j')
 
 def create_spark_session():
+    """Create spark session.
+    
+    Define jar packages for kafka and cassandra. Define cassandra connection details.
+    """
+    
     # Create Spark entry point
     # Download packages using Maven coordinates (groupId:artifactId:version)
     logger.info("Creating spark session...")
@@ -36,6 +41,8 @@ def create_spark_session():
 
 
 def create_kafka_df(spark):
+    """Create kafka streaming dataframe."""
+    
     # Connect to kafka topic
     try:
         logger.info("Start initializing kafka connection ...")
@@ -54,6 +61,8 @@ def create_kafka_df(spark):
     
     
 def process_kafka_df(kafka_df):
+    """Perform structured kafka dataframe processing."""
+    
     logger.info("Start processing kafka dataframe...")
     schema = StructType([
         StructField("address", StringType(), True),
@@ -125,6 +134,8 @@ def process_kafka_df(kafka_df):
 
 # Function to test Cassandra connection
 def test_cassandra_connection(spark):
+    """Test if cassandra connection is available."""
+    
     table_name = os.environ.get('CASSANDRA_TABLE')
     keyspace_name = os.environ.get('CASSANDRA_KEYSPACE')
     logger.info(f"Testing cassandra connection for\nTable: {table_name}\nKeyspace: {keyspace_name}")

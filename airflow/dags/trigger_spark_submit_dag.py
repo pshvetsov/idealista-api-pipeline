@@ -49,6 +49,10 @@ with DAG(
     catchup=False,
     render_template_as_native_obj=True,
 ) as dag:
+    
+    # Define a sensor task, which will listen to the specified kafka topic,
+    # within specified kafka connection. When a message arrives, it is parsed
+    # with trigger_function. If something is returned - submit_spark_job is called.
     trigger_spark_task = AwaitMessageTriggerFunctionSensor(
         task_id="trigger_spark",
         kafka_config_id="kafka_default",

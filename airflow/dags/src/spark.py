@@ -5,6 +5,8 @@ from airflow.settings import Session
 logger = logging.getLogger(__name__)
 
 def create_or_update_spark_connection():
+    """Programmatically create spark connection in airflow."""
+    
     session = Session()
     conn_id = 'spark_default'
     conn_type = 'spark'

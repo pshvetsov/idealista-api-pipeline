@@ -8,6 +8,8 @@ from minio.error import S3Error
 logger = logging.getLogger(__name__)
 
 def determine_since_date(offset_days):
+    """Determine for what time information should be pulled based on number of days from last pull."""
+    
     if offset_days == -1:
         return 'AllTime' # all time
     if offset_days == 0:
@@ -26,6 +28,8 @@ def determine_since_date(offset_days):
 
 
 class MinioConnection():
+    """Class that summarizes the functionality of minio connection."""
+    
     DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
     METADATA_BUCKET_NAME = "metadata"
     PULLDATA_BUCKET_NAME = "pulldata"
@@ -59,6 +63,8 @@ class MinioConnection():
         
     
     def get_timedelta_from_last_pull(self):
+        """Retrieve last pull date from the file. Get time delta."""
+        
         # Create bucket if it doesnt exist
         bucket_name = self.METADATA_BUCKET_NAME
         last_pull_objectname = self.LAST_PULL_OBJECT
@@ -84,6 +90,8 @@ class MinioConnection():
         
         
     def import_processed_history(self):
+        """Import the list of already processed data, which is storen in the file."""
+        
         self._processed_data = []
         metadata_bucket = self.METADATA_BUCKET_NAME
         processed_files_object= self.PROCESSED_FILES_HISTORY
@@ -95,6 +103,7 @@ class MinioConnection():
         
         
     def read_unprocessed_data(self):
+        """Reads and returns data and name from objects that were not processed."""
         
         # Read which files were already processed.
         logger.info(f"Start reading unprocessed data")
@@ -121,6 +130,8 @@ class MinioConnection():
         
     
     def read_object(self, bucket_name, object_name):
+        """Read data from a particular object."""
+        
         file_name = os.environ.get('AIRFLOW_TMP_DATA_PATH') + '/' \
             + object_name
         logger.info(f"Start reading data from object name {object_name}")
@@ -143,6 +154,8 @@ class MinioConnection():
     
     
     def write_object(self, bucket_name, object_name, data, append=False):
+        """Write data in a particular object. Data can be optionally appended."""
+        
         file_name = os.environ.get('AIRFLOW_TMP_DATA_PATH') + '/' \
             + object_name
         logger.info(f"Start writing data to file name {object_name}")

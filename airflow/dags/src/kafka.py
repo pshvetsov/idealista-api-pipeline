@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 def create_or_update_kafka_connection():
+    """Programmatically create kafka connection inside airflow."""
+    
     session = Session()
     conn_id = 'kafka_default'
     conn_type = 'Apache Kafka'
@@ -32,13 +34,14 @@ def create_or_update_kafka_connection():
         extra=extra
     )
     session.add(conn)
-    
     session.commit()
     session.close()
     logging.info("Airflow-Kafka connection setup complete.")
 
 
 def create_kafka_topic():
+    """Create kafka topic :)"""
+    
     TOPIC_NAME = os.environ.get('KAFKA_TOPIC', 'real_estate_topic')
     admin_client = AdminClient({"bootstrap.servers": "kafka:9092"})
 
@@ -57,6 +60,8 @@ def create_kafka_topic():
         
 
 def send_to_kafka_topic():
+    """Imitate streaming to kafka topic."""
+    
     create_kafka_topic()
     config = {
         'bootstrap.servers': 'kafka:9092',
