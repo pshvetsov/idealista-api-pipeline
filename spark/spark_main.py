@@ -169,7 +169,7 @@ if __name__ == '__main__':
         .foreachBatch(write_to_cassandra) \
         .outputMode("append") \
         .start() \
-        .awaitTermination()
+        .awaitTermination(10)
     
     logger.info("Successfully written to cassandra.")
 
