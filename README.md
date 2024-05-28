@@ -1,8 +1,6 @@
-# Idealista API Data streaming with Kafka and Spark
+# Idealista API Data structured streaming with Kafka and Spark
 ## Description
-This project demonstrates a real-time data processing pipeline using Docker, Airflow, minio, Kafka, Spark, and Cassandra. 
-The pipeline extracts real estate listings from the Idealista API, simulates data streaming into Kafka, processes the data using Spark, 
-and stores the results in Cassandra.
+This project demonstrates a real-time data processing pipeline using Docker, Airflow, minio, Kafka, Spark, and Cassandra. The pipeline extracts real estate listings from the Idealista API, simulates data streaming into Kafka, processes the data using Spark, and stores the results in Cassandra. Startup execution of Kafka and Spark are orchestrated with airflow and are **completely automated**. (Not implemented yet) Spark job is programmatically terminated after a certain inactivity time.
 
 ## Architecture
 ![architecture](./images/architecture.PNG)
@@ -32,7 +30,10 @@ It is assumed that docker is installed on your system. Navigate to the cloned re
 docker-compose up --build
 ```
 
-##TODO
+### Start main DAG
+Go to Airflow UI (by default http://localhost:8080) and start 'idealista_pipeline' DAG.
+
+## TODO
  - Use OOP (spark). Restructure code to use classes instead of functions.
  - Save filenames of processed data only after the data was sent.
  - Use better way to store data, other than local_file_system-to-minio setup.

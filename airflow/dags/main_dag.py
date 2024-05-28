@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
-# from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
 from src import (pull_and_save_from_api, create_or_update_kafka_connection, 
                  send_to_kafka_topic)
 

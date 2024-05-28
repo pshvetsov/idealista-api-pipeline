@@ -11,6 +11,10 @@ logger = logging.getLogger(__name__)
 debug_read = True
 
 def get_oauth_token():
+    """Returns ooauth access token, which is generated with secret and key.
+    
+    Secret and key are defined in docker secret and are stored at API_SECRET_PATH.
+    """
     # Get docker secret with API access information.
     API_SECRET_PATH = os.environ.get('API_SECRET_FILE')
     credentials = {}
@@ -56,6 +60,11 @@ def get_oauth_token():
     
     
 def pull_and_save_from_api():
+    """Define timedelta from last pull. Based on settings and delta pull information from API.
+    
+    After the pull, information is stored in minio bucket.
+    """
+    
     # Get access token.
     access_token = get_oauth_token()
     

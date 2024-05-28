@@ -3,7 +3,10 @@
 import logging
 import os
 import sys
+import time
+import threading
 from pyspark.sql import SparkSession
+from pyspark.sql.streaming import StreamingQueryListener
 from pyspark.sql.functions import get_json_object, explode, from_json, col
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType, BooleanType, LongType, MapType
 
@@ -14,7 +17,48 @@ logging.basicConfig(level=logging.INFO, filename='idealista_api.log', filemode='
 logging.getLogger('py4j').addHandler(logging.StreamHandler(sys.stdout))
 logger = logging.getLogger('py4j')
 
+class InactivityListener(StreamingQueryListener):
+    """Define a listener class, which tracks stream inactivity"""
+    
+    def __init__(self, timeout, poll_interval):
+        self.timeout = timeout
+        self.poll_interval = poll_interval
+        self.last_activity_time = time.time()
+        
+    def onQueryStarted(self, event):
+        logger.info(f"Query started: {event.id}")
+        
+    def onQueryProgress(self, event):
+        logger.info(f"Query progress: {event.id}")
+        self.last_activity_time = time.time()
+        
+    def onQueryTerminated(self, event):
+        logger.info(f"Query terminated: {event.id}")
+        
+    def onQueryIdle(self, event):
+        logger.info(f"Query idle: {event.id}")
+        
+        
+def check_for_inactivity(listener):
+    """ Check for last activity time and iterupts if it exceeds the threshold"""
+    
+    while True:
+        time.sleep(listener.poll_interval)
+        current_time = time.time()
+        if (current_time - listener.last_activity_time) > listener.timeout:
+            logger.info("No activity detected for defined period, stopping Spark stream.")
+            
+            # Stop the first active stream
+            spark.streams.active[0].stop()
+            break
+
+
 def create_spark_session():
+    """Create spark session.
+    
+    Define jar packages for kafka and cassandra. Define cassandra connection details.
+    """
+    
     # Create Spark entry point
     # Download packages using Maven coordinates (groupId:artifactId:version)
     logger.info("Creating spark session...")
@@ -36,6 +80,8 @@ def create_spark_session():
 
 
 def create_kafka_df(spark):
+    """Create kafka streaming dataframe."""
+    
     # Connect to kafka topic
     try:
         logger.info("Start initializing kafka connection ...")
@@ -54,6 +100,8 @@ def create_kafka_df(spark):
     
     
 def process_kafka_df(kafka_df):
+    """Perform structured kafka dataframe processing."""
+    
     logger.info("Start processing kafka dataframe...")
     schema = StructType([
         StructField("address", StringType(), True),
@@ -125,6 +173,8 @@ def process_kafka_df(kafka_df):
 
 # Function to test Cassandra connection
 def test_cassandra_connection(spark):
+    """Test if cassandra connection is available."""
+    
     table_name = os.environ.get('CASSANDRA_TABLE')
     keyspace_name = os.environ.get('CASSANDRA_KEYSPACE')
     logger.info(f"Testing cassandra connection for\nTable: {table_name}\nKeyspace: {keyspace_name}")
@@ -156,6 +206,11 @@ def write_to_cassandra(writeDF, _):
 if __name__ == '__main__':
     logger.info("**** START SPARK JOB ****")
     spark = create_spark_session()
+    
+    # Add StreamListener, which will check for stream activity.
+    listener = InactivityListener(timeout=30, poll_interval=10)
+    spark.streams.addListener(listener)
+    
     kafka_df = create_kafka_df(spark)
     df = process_kafka_df(kafka_df)
     
@@ -165,11 +220,20 @@ if __name__ == '__main__':
     logger.info("Printing df schema:")
     df.printSchema()
     
+    # Before the processing starts, start listener on a separate thread.
+    # It will listen to spark stream and will shut it down after defined 
+    # inactivity time.
+    inactivity_thread = threading.Thread(target=check_for_inactivity, args=(listener,))
+    inactivity_thread.start()
+    
     df.writeStream \
         .foreachBatch(write_to_cassandra) \
         .outputMode("append") \
         .start() \
-        .awaitTermination(10)
+        .awaitTermination()
     
+    # Perform cleanup
+    spark.streams.removeListener(listener)
+    spark.stop()
     logger.info("Successfully written to cassandra.")
 
