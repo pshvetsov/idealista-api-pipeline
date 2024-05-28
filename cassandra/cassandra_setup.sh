@@ -7,10 +7,6 @@ CASSANDRA_PORT=9042
 KEYSPACE=${CASSANDRA_KEYSPACE:-real_estate_keyspace}
 TABLE_NAME=${CASSANDRA_TABLE:-rent_data}
 
-# until printf "" 2>>/dev/null >>/dev/tcp/$CASSANDRA_HOST/$CASSANDRA_PORT; do
-    # sleep 5;
-    # echo "Waiting for cassandra...";
-# done
 # Continuously check if Cassandra is ready and can process commands
 until cqlsh $CASSANDRA_HOST $CASSANDRA_PORT -u $CASSANDRA_USERNAME -p $CASSANDRA_PASSWORD -e "DESCRIBE KEYSPACES;" &> /dev/null; do
     echo "Waiting for Cassandra to be ready..."
